@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `searchRouting.fallbackOn` accepts `"empty"` and `"domain-miss"`, so a configured route can move past a successful response that has no results or none on a requested include domain. If every candidate is weak, the first weak response is returned. Off unless listed.
+- Search routing can move on to the next provider when one answers with no results, or with no results from the domains you asked for. Turn it on by adding `"empty"` or `"domain-miss"` to `searchRouting.fallbackOn`. If every provider answers that way, you get the first answer. Thanks to [@isjiajia01](https://github.com/isjiajia01) for [PR #594](https://github.com/nicobailon/pi-web-access/pull/594).
 
 ## [0.44.0] - 2026-10-20
 
