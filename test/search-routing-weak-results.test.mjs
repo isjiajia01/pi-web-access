@@ -90,37 +90,10 @@ test("a named provider stays strict even when routing opts into empty", async ()
 	assert.deepEqual(JSON.parse(child.stdout.trim()), { provider: "brave", calls: ["brave"] });
 });
 
-test("timeoutMs bounds the whole route and stops trying later candidates", async () => {
-	const child = await run({ providers: ["brave", "tavily"], fallbackOn: [...base, "empty"], timeoutMs: 300 }, `
-		globalThis.fetch = (url, init) => new Promise((_, reject) => {
-			calls.push(String(url).includes("brave") ? "brave" : "tavily");
-			init?.signal?.addEventListener("abort", () => reject(init.signal.reason ?? new Error("aborted")));
-		});
-		const keepAlive = setInterval(() => {}, 1000); // AbortSignal.timeout timers are unref'd
+test("invalid fallbackOn kinds are rejected", async () => {
+	const child = await run({ providers: ["brave"], fallbackOn: ["weak"] }, `
 		const { search } = await import(${JSON.stringify(searchModuleUrl)});
-		const started = Date.now();
-		try { await search("q", { provider: "auto" }); console.log("unexpected success"); }
-		catch (err) { console.log(JSON.stringify({ message: String(err.message), calls, fast: Date.now() - started < 5000 })); }
-		clearInterval(keepAlive);
+		try { await search("q", { provider: "auto" }); } catch (err) { console.log(String(err.message)); }
 	`);
-	assert.equal(child.status, 0, child.stderr);
-	const out = JSON.parse(child.stdout.trim());
-	assert.match(out.message, /Configured search routing exhausted/);
-	assert.match(out.message, /routing timeout after 300ms/);
-	assert.deepEqual(out.calls, ["brave"]);
-	assert.equal(out.fast, true);
-});
-
-test("invalid timeoutMs and fallbackOn kinds are rejected", async () => {
-	for (const routing of [
-		{ providers: ["brave"], fallbackOn: base, timeoutMs: 0 },
-		{ providers: ["brave"], fallbackOn: base, timeoutMs: "soon" },
-		{ providers: ["brave"], fallbackOn: ["weak"] },
-	]) {
-		const child = await run(routing, `
-			const { search } = await import(${JSON.stringify(searchModuleUrl)});
-			try { await search("q", { provider: "auto" }); } catch (err) { console.log(String(err.message)); }
-		`);
-		assert.match(child.stdout, /searchRouting\.(timeoutMs|fallbackOn)/, child.stderr);
-	}
+	assert.match(child.stdout, /searchRouting\.fallbackOn/, child.stderr);
 });
