@@ -7,6 +7,12 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Search routing can move on to the next provider when one answers with no results, or with no results from the domains you asked for. Turn it on by adding `"empty"` or `"domain-miss"` to `searchRouting.fallbackOn`. If every provider answers that way, you get the first answer. Thanks to [@isjiajia01](https://github.com/isjiajia01) for [PR #594](https://github.com/nicobailon/pi-web-access/pull/594).
+- Exa search results show each source's published date and authors, and results from Exa's `publication` category (its research paper index) also show the citation count and DOI. The README now names `publication` as the Exa category for research papers. Exa uses it in place of `research paper`, which still works. Thanks to [@kestermcullough](https://github.com/kestermcullough) for [PR #596](https://github.com/nicobailon/pi-web-access/pull/596).
+
+### Fixed
+
+- DuckDuckGo search no longer locks itself out. Several searches at once, such as a `queries` list, used to trigger DuckDuckGo's bot check for the whole IP address for 10 to 15 minutes, and every retry kept the block in place. DuckDuckGo searches now run one at a time, at least 2 seconds apart. After a bot check the provider stops sending requests for 5 minutes, doubling up to 1 hour, and fails at once with a `quota` error, so search routing can fall back right away.
+- A DuckDuckGo search that times out now fails as a network error instead of an abort, so search routing falls back to the next provider. Its 30-second limit also counts the time spent waiting behind other DuckDuckGo searches. Thanks to [@kestermcullough](https://github.com/kestermcullough) for [PR #593](https://github.com/nicobailon/pi-web-access/pull/593).
 
 ## [0.44.0] - 2026-10-20
 
